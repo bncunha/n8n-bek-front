@@ -16,6 +16,7 @@ class ApiService {
   constructor() {
     this.timeout = API_CONFIG.TIMEOUT;
     this.uuid = generateUUID();
+    this.baseURL = import.meta.env.VITE_API_URL;
   }
 
   /**
@@ -26,11 +27,6 @@ class ApiService {
    */
   async sendMessage(message, files = []) {
     const formData = new FormData();
-
-    formData.append("uuid", this.uuid);
-
-    // Adiciona a mensagem
-    formData.append("message", message);
 
     // Adiciona os arquivos
     files.forEach((file, index) => {
@@ -52,10 +48,17 @@ class ApiService {
 
     try {
       const response = await this.fetchWithTimeout(
-        `${this.baseURL}${API_CONFIG.ENDPOINTS.CHAT}`,
+        `${this.baseURL}`,
         {
           method: "POST",
-          body: formData,
+          body: JSON.stringify({
+            url: "http://" + this.ip + API_CONFIG.ENDPOINTS.CHAT,
+            method: "POST",
+            body: {
+              message: message,
+              uuid: this.uuid,
+            },
+          }),
           headers: {
             // Não definir Content-Type para FormData - o browser define automaticamente
           },
@@ -68,7 +71,7 @@ class ApiService {
       }
 
       const data = await response.json();
-      return data;
+      return data.data;
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
       throw this.handleError(error);
@@ -104,8 +107,8 @@ class ApiService {
     }
   }
 
-  setBaseURL(baseURL) {
-    this.baseURL = "http://" + baseURL;
+  setBaseURL(ip) {
+    this.ip = ip;
   }
   /**
    * Trata erros da API
