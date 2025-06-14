@@ -1,11 +1,7 @@
 import { generateUUID } from "@/lib/generateUUID";
-import { getQueryParams } from "@/lib/getQueryParams";
 
 // Configurações da API
 const API_CONFIG = {
-  // URL base do backend - deve ser configurada conforme o ambiente
-  BASE_URL: getQueryParams("api") || "http://localhost:8000",
-
   // Timeout de 3 minutos (180 segundos)
   TIMEOUT: 180000,
 
@@ -18,7 +14,6 @@ const API_CONFIG = {
 
 class ApiService {
   constructor() {
-    this.baseURL = API_CONFIG.BASE_URL;
     this.timeout = API_CONFIG.TIMEOUT;
     this.uuid = generateUUID();
   }
@@ -109,6 +104,9 @@ class ApiService {
     }
   }
 
+  setBaseURL(baseURL) {
+    this.baseURL = "http://" + baseURL;
+  }
   /**
    * Trata erros da API
    * @param {Error} error - Erro capturado
@@ -132,24 +130,6 @@ class ApiService {
     }
 
     return new Error("Erro inesperado. Tente novamente.");
-  }
-
-  /**
-   * Verifica se o backend está disponível
-   * @returns {Promise<boolean>} Status do backend
-   */
-  async checkHealth() {
-    try {
-      const response = await this.fetchWithTimeout(
-        `${this.baseURL}/health`,
-        { method: "GET" },
-        5000 // 5 segundos para health check
-      );
-      return response.ok;
-    } catch (error) {
-      console.warn("Backend não está disponível:", error.message);
-      return false;
-    }
   }
 }
 
